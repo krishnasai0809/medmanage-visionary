@@ -68,6 +68,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Define the allowed status types
+type InventoryStatus = "In Stock" | "Low Stock" | "Out of Stock";
+
 // Mock data for inventory items
 const mockInventoryItems = [
   {
@@ -81,7 +84,7 @@ const mockInventoryItems = [
     supplier: "MediTech Pharmaceuticals",
     price: 0.15,
     location: "Warehouse A, Shelf 3",
-    status: "In Stock",
+    status: "In Stock" as InventoryStatus,
     reorderLevel: 500,
     lastUpdated: "2023-11-01"
   },
@@ -96,7 +99,7 @@ const mockInventoryItems = [
     supplier: "Global Health Supplies",
     price: 0.28,
     location: "Warehouse A, Shelf 5",
-    status: "Low Stock",
+    status: "Low Stock" as InventoryStatus,
     reorderLevel: 2000,
     lastUpdated: "2023-10-25"
   },
@@ -111,7 +114,7 @@ const mockInventoryItems = [
     supplier: "PharmaPlus Inc.",
     price: 35.99,
     location: "Cold Storage, Section 2",
-    status: "In Stock",
+    status: "In Stock" as InventoryStatus,
     reorderLevel: 100,
     lastUpdated: "2023-11-02"
   },
@@ -126,7 +129,7 @@ const mockInventoryItems = [
     supplier: "Healthcare Products Co.",
     price: 0.10,
     location: "Warehouse B, Shelf 1",
-    status: "In Stock",
+    status: "In Stock" as InventoryStatus,
     reorderLevel: 300,
     lastUpdated: "2023-10-20"
   },
@@ -141,7 +144,7 @@ const mockInventoryItems = [
     supplier: "MediTech Pharmaceuticals",
     price: 4.75,
     location: "Warehouse A, Shelf 7",
-    status: "In Stock",
+    status: "In Stock" as InventoryStatus,
     reorderLevel: 200,
     lastUpdated: "2023-11-05"
   },
@@ -156,7 +159,7 @@ const mockInventoryItems = [
     supplier: "Global Health Supplies",
     price: 0.18,
     location: "Warehouse A, Shelf 3",
-    status: "Low Stock",
+    status: "Low Stock" as InventoryStatus,
     reorderLevel: 300,
     lastUpdated: "2023-10-30"
   },
@@ -171,7 +174,7 @@ const mockInventoryItems = [
     supplier: "PharmaPlus Inc.",
     price: 0.12,
     location: "Warehouse B, Shelf 4",
-    status: "In Stock",
+    status: "In Stock" as InventoryStatus,
     reorderLevel: 500,
     lastUpdated: "2023-11-03"
   },
@@ -186,7 +189,7 @@ const mockInventoryItems = [
     supplier: "MediTech Pharmaceuticals",
     price: 0.95,
     location: "Warehouse A, Shelf 6",
-    status: "Out of Stock",
+    status: "Out of Stock" as InventoryStatus,
     reorderLevel: 100,
     lastUpdated: "2023-10-15"
   }
@@ -219,7 +222,7 @@ interface InventoryItem {
   supplier: string;
   price: number;
   location: string;
-  status: "In Stock" | "Low Stock" | "Out of Stock";
+  status: InventoryStatus;
   reorderLevel: number;
   lastUpdated: string;
 }
@@ -342,16 +345,19 @@ export default function Inventory() {
     }));
   };
 
+  // Determine the status based on quantity and reorder level
+  const determineStatus = (quantity: number, reorderLevel: number): InventoryStatus => {
+    if (quantity === 0) return "Out of Stock";
+    if (quantity <= reorderLevel) return "Low Stock";
+    return "In Stock";
+  };
+
   // Add new inventory item
   const handleAddItem = () => {
     const newItem: InventoryItem = {
       id: `INV${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
       ...formData,
-      status: formData.quantity === 0 
-        ? "Out of Stock" 
-        : formData.quantity <= formData.reorderLevel 
-          ? "Low Stock" 
-          : "In Stock",
+      status: determineStatus(formData.quantity, formData.reorderLevel),
       lastUpdated: new Date().toISOString().split('T')[0]
     };
     
@@ -374,11 +380,7 @@ export default function Inventory() {
         return {
           ...item,
           ...formData,
-          status: formData.quantity === 0 
-            ? "Out of Stock" 
-            : formData.quantity <= formData.reorderLevel 
-              ? "Low Stock" 
-              : "In Stock",
+          status: determineStatus(formData.quantity, formData.reorderLevel),
           lastUpdated: new Date().toISOString().split('T')[0]
         };
       }
@@ -438,7 +440,7 @@ export default function Inventory() {
   };
 
   // Get status badge
-  const getStatusBadge = (status: InventoryItem["status"]) => {
+  const getStatusBadge = (status: InventoryStatus) => {
     switch (status) {
       case "In Stock":
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">In Stock</Badge>;
@@ -786,11 +788,15 @@ export default function Inventory() {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious 
+                      <Button
+                        variant="outline"
+                        size="icon"
                         onClick={() => paginate(Math.max(currentPage - 1, 1))}
                         disabled={currentPage === 1}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                      />
+                        className={currentPage === 1 ? "opacity-50" : ""}
+                      >
+                        <PaginationPrevious />
+                      </Button>
                     </PaginationItem>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <PaginationItem key={page}>
@@ -803,11 +809,15 @@ export default function Inventory() {
                       </PaginationItem>
                     ))}
                     <PaginationItem>
-                      <PaginationNext 
+                      <Button
+                        variant="outline"
+                        size="icon"
                         onClick={() => paginate(Math.min(currentPage + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                      />
+                        className={currentPage === totalPages ? "opacity-50" : ""}
+                      >
+                        <PaginationNext />
+                      </Button>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>

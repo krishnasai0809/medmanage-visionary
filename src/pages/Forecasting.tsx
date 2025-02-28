@@ -49,6 +49,7 @@ import {
   Download,
   Filter
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Mock data for product categories
 const productCategories = [
