@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -159,7 +159,7 @@ export function ExpiryTrackingList({ threshold = 30 }: ExpiryTrackingListProps) 
 
   return (
     <Card className="h-full">
-      <CardContent className="h-full p-0">
+      <CardContent className="h-full p-0 flex flex-col">
         {loading ? (
           <div className="h-full min-h-48 flex items-center justify-center p-6">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -173,7 +173,7 @@ export function ExpiryTrackingList({ threshold = 30 }: ExpiryTrackingListProps) 
             </p>
           </div>
         ) : (
-          <div className="h-full overflow-auto">
+          <div className="flex flex-col h-full">
             <div className="p-4 border-b bg-gray-50 dark:bg-gray-800/50 sticky top-0 flex items-center justify-between">
               <div className="flex items-center">
                 <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
@@ -182,59 +182,61 @@ export function ExpiryTrackingList({ threshold = 30 }: ExpiryTrackingListProps) 
                 </span>
               </div>
             </div>
-            <div className="space-y-3 p-4">
-              {expiringItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="p-3 border rounded-lg hover:shadow-md transition-shadow duration-200 hover:bg-gray-50 dark:hover:bg-gray-900"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                    <div className="mb-2 sm:mb-0">
-                      <h4 className="text-sm font-medium">{item.name}</h4>
-                      <p className="text-xs text-gray-500">{item.category} • {item.quantity} units</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "text-xs font-medium px-2 py-1 rounded-full", 
-                        getBadgeBg(item.daysRemaining)
-                      )}>
-                        {item.daysRemaining} days
-                      </span>
-                      <div className="flex items-center text-xs text-gray-400">
-                        <Calendar className="h-3.5 w-3.5 mr-1" />
-                        {formatDate(item.expiryDate)}
+            <div className="overflow-y-auto flex-1" style={{ maxHeight: "350px" }}>
+              <div className="space-y-3 p-4">
+                {expiringItems.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="p-3 border rounded-lg hover:shadow-md transition-shadow duration-200 hover:bg-gray-50 dark:hover:bg-gray-900"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                      <div className="mb-2 sm:mb-0">
+                        <h4 className="text-sm font-medium">{item.name}</h4>
+                        <p className="text-xs text-gray-500">{item.category} • {item.quantity} units</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-xs font-medium px-2 py-1 rounded-full", 
+                          getBadgeBg(item.daysRemaining)
+                        )}>
+                          {item.daysRemaining} days
+                        </span>
+                        <div className="flex items-center text-xs text-gray-400">
+                          <Calendar className="h-3.5 w-3.5 mr-1" />
+                          {formatDate(item.expiryDate)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs">Expires in</span>
-                      <span className={cn("text-xs font-medium", getExpiryStatusText(item.daysRemaining))}>
-                        {item.daysRemaining} days
-                      </span>
-                    </div>
-                    <Progress 
-                      value={getExpiryPercentage(item.daysRemaining)} 
-                      className="h-2" 
-                      indicatorClassName={getExpiryStatusColor(item.daysRemaining)}
-                    />
-                  </div>
-
-                  {item.stock === "low" && (
+                    
                     <div className="mt-3">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-xs" 
-                        onClick={() => handleRestock(item)}
-                      >
-                        <RefreshCw className="h-3.5 w-3.5 mr-1" /> Restock Recommendation
-                      </Button>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs">Expires in</span>
+                        <span className={cn("text-xs font-medium", getExpiryStatusText(item.daysRemaining))}>
+                          {item.daysRemaining} days
+                        </span>
+                      </div>
+                      <Progress 
+                        value={getExpiryPercentage(item.daysRemaining)} 
+                        className="h-2" 
+                        indicatorClassName={getExpiryStatusColor(item.daysRemaining)}
+                      />
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    {item.stock === "low" && (
+                      <div className="mt-3">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-xs" 
+                          onClick={() => handleRestock(item)}
+                        >
+                          <RefreshCw className="h-3.5 w-3.5 mr-1" /> Restock Recommendation
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

@@ -7,8 +7,7 @@ import { SupplierRankingTable } from "@/components/dashboard/SupplierRankingTabl
 import { ExpiryTrackingList } from "@/components/dashboard/ExpiryTrackingList";
 import { ForecastingPanel } from "@/components/dashboard/ForecastingPanel";
 import { DeliveryStatusCard } from "@/components/dashboard/DeliveryStatusCard";
-import { SupplierInsightsPanel } from "@/components/dashboard/SupplierInsightsPanel";
-import { Package, TrendingUp, AlertTriangle } from "lucide-react";
+import { Package, TrendingUp } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -110,7 +109,6 @@ export default function Index() {
         <div className="grid gap-4 grid-cols-1 xl:grid-cols-2">
           <div className="space-y-4">
             <ForecastingPanel />
-            <SupplierInsightsPanel />
           </div>
           <SupplierRankingTable />
         </div>
