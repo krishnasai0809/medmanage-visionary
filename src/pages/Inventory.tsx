@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { 
   Table, 
@@ -64,14 +64,18 @@ import {
   Filter,
   ArrowUpDown,
   Calendar,
-  Tag
+  Tag,
+  AlertCircle,
+  DollarSign,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 
 // Define the allowed status types
 type InventoryStatus = "In Stock" | "Low Stock" | "Out of Stock";
 
-// Mock data for inventory items
+// Mock data for inventory items - updated to include batchId
 const mockInventoryItems = [
   {
     id: "INV001",
@@ -80,6 +84,7 @@ const mockInventoryItems = [
     quantity: 2500,
     unit: "Tablets",
     batchNumber: "BATCH-123",
+    batchId: "B123",
     expiryDate: "2024-12-15",
     supplier: "MediTech Pharmaceuticals",
     price: 0.15,
@@ -90,11 +95,28 @@ const mockInventoryItems = [
   },
   {
     id: "INV002",
+    name: "Paracetamol 500mg",
+    category: "Pain Relief",
+    quantity: 1500,
+    unit: "Tablets",
+    batchNumber: "BATCH-124",
+    batchId: "B124",
+    expiryDate: "2024-10-15",
+    supplier: "MediTech Pharmaceuticals",
+    price: 0.15,
+    location: "Warehouse A, Shelf 3",
+    status: "In Stock" as InventoryStatus,
+    reorderLevel: 500,
+    lastUpdated: "2023-11-01"
+  },
+  {
+    id: "INV003",
     name: "Amoxicillin 250mg",
     category: "Antibiotics",
     quantity: 1800,
     unit: "Capsules",
     batchNumber: "BATCH-456",
+    batchId: "B456",
     expiryDate: "2024-01-10",
     supplier: "Global Health Supplies",
     price: 0.28,
@@ -104,12 +126,13 @@ const mockInventoryItems = [
     lastUpdated: "2023-10-25"
   },
   {
-    id: "INV003",
+    id: "INV004",
     name: "Insulin Glargine",
     category: "Diabetes",
     quantity: 500,
     unit: "Vials",
     batchNumber: "BATCH-789",
+    batchId: "B789",
     expiryDate: "2023-12-28",
     supplier: "PharmaPlus Inc.",
     price: 35.99,
@@ -119,12 +142,13 @@ const mockInventoryItems = [
     lastUpdated: "2023-11-02"
   },
   {
-    id: "INV004",
+    id: "INV005",
     name: "Vitamin B Complex",
     category: "Supplements",
     quantity: 1200,
     unit: "Tablets",
     batchNumber: "BATCH-012",
+    batchId: "B012",
     expiryDate: "2023-12-08",
     supplier: "Healthcare Products Co.",
     price: 0.10,
@@ -134,12 +158,13 @@ const mockInventoryItems = [
     lastUpdated: "2023-10-20"
   },
   {
-    id: "INV005",
+    id: "INV006",
     name: "Hydrocortisone Cream",
     category: "Topical",
     quantity: 800,
     unit: "Tubes",
     batchNumber: "BATCH-345",
+    batchId: "B345",
     expiryDate: "2024-02-15",
     supplier: "MediTech Pharmaceuticals",
     price: 4.75,
@@ -149,12 +174,13 @@ const mockInventoryItems = [
     lastUpdated: "2023-11-05"
   },
   {
-    id: "INV006",
+    id: "INV007",
     name: "Ibuprofen 400mg",
     category: "Pain Relief",
     quantity: 150,
     unit: "Tablets",
     batchNumber: "BATCH-678",
+    batchId: "B678",
     expiryDate: "2024-03-20",
     supplier: "Global Health Supplies",
     price: 0.18,
@@ -164,12 +190,13 @@ const mockInventoryItems = [
     lastUpdated: "2023-10-30"
   },
   {
-    id: "INV007",
+    id: "INV008",
     name: "Metformin 500mg",
     category: "Diabetes",
     quantity: 3200,
     unit: "Tablets",
     batchNumber: "BATCH-901",
+    batchId: "B901",
     expiryDate: "2024-06-12",
     supplier: "PharmaPlus Inc.",
     price: 0.12,
@@ -179,12 +206,13 @@ const mockInventoryItems = [
     lastUpdated: "2023-11-03"
   },
   {
-    id: "INV008",
+    id: "INV009",
     name: "Azithromycin 500mg",
     category: "Antibiotics",
     quantity: 0,
     unit: "Tablets",
     batchNumber: "BATCH-234",
+    batchId: "B234",
     expiryDate: "2024-04-30",
     supplier: "MediTech Pharmaceuticals",
     price: 0.95,
@@ -192,6 +220,22 @@ const mockInventoryItems = [
     status: "Out of Stock" as InventoryStatus,
     reorderLevel: 100,
     lastUpdated: "2023-10-15"
+  },
+  {
+    id: "INV010",
+    name: "Vitamin B Complex",
+    category: "Supplements",
+    quantity: 800,
+    unit: "Tablets",
+    batchNumber: "BATCH-013",
+    batchId: "B013",
+    expiryDate: "2024-01-15",
+    supplier: "Healthcare Products Co.",
+    price: 0.10,
+    location: "Warehouse B, Shelf 1",
+    status: "In Stock" as InventoryStatus,
+    reorderLevel: 300,
+    lastUpdated: "2023-11-10"
   }
 ];
 
@@ -203,6 +247,7 @@ interface InventoryFormData {
   quantity: number;
   unit: string;
   batchNumber: string;
+  batchId: string;
   expiryDate: string;
   supplier: string;
   price: number;
@@ -218,6 +263,7 @@ interface InventoryItem {
   quantity: number;
   unit: string;
   batchNumber: string;
+  batchId: string;
   expiryDate: string;
   supplier: string;
   price: number;
@@ -249,12 +295,38 @@ export default function Inventory() {
     quantity: 0,
     unit: "Tablets",
     batchNumber: "",
+    batchId: "",
     expiryDate: "",
     supplier: "",
     price: 0,
     location: "",
     reorderLevel: 0
   });
+
+  // Calculate inventory stats
+  const calculateInventoryStats = () => {
+    const totalStockValue = inventoryItems.reduce((total, item) => {
+      return total + (item.price * item.quantity);
+    }, 0);
+
+    const lowStockCount = inventoryItems.filter(item => 
+      item.status === "Low Stock" || item.quantity <= item.reorderLevel
+    ).length;
+
+    const today = new Date();
+    const expiredCount = inventoryItems.filter(item => {
+      const expiryDate = new Date(item.expiryDate);
+      return expiryDate < today;
+    }).length;
+
+    return {
+      totalStockValue,
+      lowStockCount,
+      expiredCount
+    };
+  };
+
+  const inventoryStats = calculateInventoryStats();
 
   // Extract unique categories from inventory items
   const categories = [...new Set(inventoryItems.map(item => item.category))];
@@ -276,7 +348,8 @@ export default function Inventory() {
   const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+                         item.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.batchId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
     const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
     
@@ -318,6 +391,7 @@ export default function Inventory() {
       quantity: 0,
       unit: "Tablets",
       batchNumber: "",
+      batchId: "",
       expiryDate: "",
       supplier: "",
       price: 0,
@@ -424,6 +498,7 @@ export default function Inventory() {
       quantity: item.quantity,
       unit: item.unit,
       batchNumber: item.batchNumber,
+      batchId: item.batchId,
       expiryDate: item.expiryDate,
       supplier: item.supplier,
       price: item.price,
@@ -461,6 +536,15 @@ export default function Inventory() {
       month: 'short', 
       day: 'numeric' 
     }).format(date);
+  };
+
+  // Format currency for display
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(value);
   };
 
   return (
@@ -558,6 +642,18 @@ export default function Inventory() {
                       />
                     </div>
                     <div className="space-y-2">
+                      <label htmlFor="batchId" className="text-sm font-medium">Batch ID</label>
+                      <Input
+                        id="batchId"
+                        name="batchId"
+                        placeholder="B123"
+                        value={formData.batchId}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
                       <label htmlFor="expiryDate" className="text-sm font-medium">Expiry Date</label>
                       <Input
                         id="expiryDate"
@@ -567,8 +663,6 @@ export default function Inventory() {
                         onChange={handleFormChange}
                       />
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="supplier" className="text-sm font-medium">Supplier</label>
                       <Input
@@ -579,6 +673,8 @@ export default function Inventory() {
                         onChange={handleFormChange}
                       />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="price" className="text-sm font-medium">Price</label>
                       <Input
@@ -591,8 +687,6 @@ export default function Inventory() {
                         onChange={handleFormChange}
                       />
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="location" className="text-sm font-medium">Storage Location</label>
                       <Input
@@ -603,17 +697,17 @@ export default function Inventory() {
                         onChange={handleFormChange}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label htmlFor="reorderLevel" className="text-sm font-medium">Reorder Level</label>
-                      <Input
-                        id="reorderLevel"
-                        name="reorderLevel"
-                        type="number"
-                        placeholder="0"
-                        value={formData.reorderLevel}
-                        onChange={handleFormChange}
-                      />
-                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="reorderLevel" className="text-sm font-medium">Reorder Level</label>
+                    <Input
+                      id="reorderLevel"
+                      name="reorderLevel"
+                      type="number"
+                      placeholder="0"
+                      value={formData.reorderLevel}
+                      onChange={handleFormChange}
+                    />
                   </div>
                 </div>
                 <DialogFooter>
@@ -637,6 +731,33 @@ export default function Inventory() {
           </div>
         </div>
 
+        {/* Inventory Stats Cards */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+          <StatsCard
+            title="Total Stock Value"
+            value={formatCurrency(inventoryStats.totalStockValue)}
+            description="total inventory worth"
+            icon={DollarSign}
+            className="hover-scale"
+          />
+          <StatsCard
+            title="Low Stock Items"
+            value={inventoryStats.lowStockCount.toString()}
+            description="items below reorder level"
+            icon={AlertCircle}
+            className="hover-scale"
+            percentageChange={inventoryStats.lowStockCount > 0 ? -12.5 : 0}
+          />
+          <StatsCard
+            title="Expired Items"
+            value={inventoryStats.expiredCount.toString()}
+            description="items past expiry date"
+            icon={BarChart3}
+            className="hover-scale"
+            percentageChange={inventoryStats.expiredCount > 0 ? -5.2 : 0}
+          />
+        </div>
+
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-medium">Inventory Items</CardTitle>
@@ -647,7 +768,7 @@ export default function Inventory() {
               <div className="relative flex-1">
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by name, ID, or supplier..."
+                  placeholder="Search by name, ID, batch, or supplier..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -709,6 +830,15 @@ export default function Inventory() {
                         <ArrowUpDown className="ml-1 h-4 w-4" />
                       </button>
                     </TableHead>
+                    <TableHead>
+                      <button 
+                        className="flex items-center font-semibold"
+                        onClick={() => handleSort("batchId")}
+                      >
+                        Batch ID
+                        <ArrowUpDown className="ml-1 h-4 w-4" />
+                      </button>
+                    </TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>
                       <button 
@@ -722,7 +852,13 @@ export default function Inventory() {
                     <TableHead>
                       <div className="flex items-center">
                         <Calendar className="mr-1 h-4 w-4" />
-                        Expiry Date
+                        <button 
+                          className="flex items-center font-semibold"
+                          onClick={() => handleSort("expiryDate")}
+                        >
+                          Expiry Date
+                          <ArrowUpDown className="ml-1 h-4 w-4" />
+                        </button>
                       </div>
                     </TableHead>
                     <TableHead>Status</TableHead>
@@ -732,7 +868,7 @@ export default function Inventory() {
                 <TableBody>
                   {currentItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center h-24 text-muted-foreground">
                         No inventory items found.
                       </TableCell>
                     </TableRow>
@@ -741,6 +877,11 @@ export default function Inventory() {
                       <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                         <TableCell className="font-medium">{item.id}</TableCell>
                         <TableCell>{item.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-normal bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800">
+                            {item.batchId}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="font-normal">
                             {item.category}
@@ -783,10 +924,11 @@ export default function Inventory() {
               </Table>
             </div>
             
+            {/* Fixed pagination layout at the bottom */}
             {totalPages > 1 && (
               <div className="mt-4 flex justify-center">
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="flex items-center">
                     <PaginationItem>
                       <Button
                         variant="outline"
@@ -795,9 +937,10 @@ export default function Inventory() {
                         disabled={currentPage === 1}
                         className={currentPage === 1 ? "opacity-50" : ""}
                       >
-                        <PaginationPrevious />
+                        <PaginationPrevious className="h-4 w-4" />
                       </Button>
                     </PaginationItem>
+                    
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <PaginationItem key={page}>
                         <PaginationLink
@@ -808,6 +951,7 @@ export default function Inventory() {
                         </PaginationLink>
                       </PaginationItem>
                     ))}
+                    
                     <PaginationItem>
                       <Button
                         variant="outline"
@@ -816,7 +960,7 @@ export default function Inventory() {
                         disabled={currentPage === totalPages}
                         className={currentPage === totalPages ? "opacity-50" : ""}
                       >
-                        <PaginationNext />
+                        <PaginationNext className="h-4 w-4" />
                       </Button>
                     </PaginationItem>
                   </PaginationContent>
@@ -858,7 +1002,6 @@ export default function Inventory() {
                   />
                 </div>
               </div>
-              {/* Repeat the same form fields from Add dialog */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="edit-quantity" className="text-sm font-medium">Quantity</label>
@@ -905,6 +1048,18 @@ export default function Inventory() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label htmlFor="edit-batchId" className="text-sm font-medium">Batch ID</label>
+                  <Input
+                    id="edit-batchId"
+                    name="batchId"
+                    placeholder="B123"
+                    value={formData.batchId}
+                    onChange={handleFormChange}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <label htmlFor="edit-expiryDate" className="text-sm font-medium">Expiry Date</label>
                   <Input
                     id="edit-expiryDate"
@@ -914,8 +1069,6 @@ export default function Inventory() {
                     onChange={handleFormChange}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="edit-supplier" className="text-sm font-medium">Supplier</label>
                   <Input
@@ -926,6 +1079,8 @@ export default function Inventory() {
                     onChange={handleFormChange}
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="edit-price" className="text-sm font-medium">Price</label>
                   <Input
@@ -938,8 +1093,6 @@ export default function Inventory() {
                     onChange={handleFormChange}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="edit-location" className="text-sm font-medium">Storage Location</label>
                   <Input
@@ -950,17 +1103,17 @@ export default function Inventory() {
                     onChange={handleFormChange}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="edit-reorderLevel" className="text-sm font-medium">Reorder Level</label>
-                  <Input
-                    id="edit-reorderLevel"
-                    name="reorderLevel"
-                    type="number"
-                    placeholder="0"
-                    value={formData.reorderLevel}
-                    onChange={handleFormChange}
-                  />
-                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="edit-reorderLevel" className="text-sm font-medium">Reorder Level</label>
+                <Input
+                  id="edit-reorderLevel"
+                  name="reorderLevel"
+                  type="number"
+                  placeholder="0"
+                  value={formData.reorderLevel}
+                  onChange={handleFormChange}
+                />
               </div>
             </div>
             <DialogFooter>
@@ -993,6 +1146,7 @@ export default function Inventory() {
                 <div className="p-4 border rounded-md">
                   <p className="font-medium">{selectedItem.name}</p>
                   <p className="text-sm text-muted-foreground">ID: {selectedItem.id}</p>
+                  <p className="text-sm text-muted-foreground">Batch ID: {selectedItem.batchId}</p>
                   <p className="text-sm text-muted-foreground">Category: {selectedItem.category}</p>
                   <p className="text-sm text-muted-foreground">Quantity: {selectedItem.quantity} {selectedItem.unit}</p>
                 </div>
