@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SupplierActions } from "@/components/suppliers/SupplierActions";
 import { EditPerformanceDialog } from "@/components/suppliers/EditPerformanceDialog";
+import { AddSupplierDialog } from "@/components/suppliers/AddSupplierDialog";
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit, Star, Search, ArrowUpDown } from "lucide-react";
+import { Edit, Star, Search, ArrowUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Supplier {
@@ -99,9 +99,9 @@ export default function Suppliers() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Simulate data loading
     const timer = setTimeout(() => {
       setSuppliers(mockSuppliers);
       setFilteredSuppliers(mockSuppliers);
@@ -111,18 +111,15 @@ export default function Suppliers() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Filter suppliers when search term or tab changes
   useEffect(() => {
     let filtered = suppliers;
     
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(supplier => 
         supplier.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
-    // Apply tab filter
     if (activeTab !== "all") {
       filtered = filtered.filter(supplier => 
         activeTab === "active" ? supplier.status === "Active" :
@@ -131,7 +128,6 @@ export default function Suppliers() {
       );
     }
     
-    // Apply sorting
     filtered = [...filtered].sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
@@ -172,6 +168,10 @@ export default function Suppliers() {
         ? { ...supplier, ...updatedData }
         : supplier
     ));
+  };
+
+  const handleAddSupplier = (newSupplier: Supplier) => {
+    setSuppliers([newSupplier, ...suppliers]);
   };
 
   const renderStarRating = (rating: number) => {
@@ -219,9 +219,13 @@ export default function Suppliers() {
               Manage supplier information and performance metrics.
             </p>
           </div>
+          
+          <Button onClick={() => setIsAddSupplierDialogOpen(true)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Add Supplier
+          </Button>
         </div>
         
-        {/* Supplier Actions - New component with Sync and Report Generation */}
         <SupplierActions />
         
         <Card>
@@ -335,12 +339,17 @@ export default function Suppliers() {
           </CardContent>
         </Card>
         
-        {/* Edit Performance Dialog */}
         <EditPerformanceDialog
           supplier={selectedSupplier}
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           onSave={handleSavePerformance}
+        />
+        
+        <AddSupplierDialog
+          open={isAddSupplierDialogOpen}
+          onOpenChange={setIsAddSupplierDialogOpen}
+          onAddSupplier={handleAddSupplier}
         />
       </div>
     </AppLayout>

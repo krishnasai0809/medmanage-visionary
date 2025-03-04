@@ -1,221 +1,214 @@
 
-import { Button } from "@/components/ui/button";
-import { Download, RefreshCw, FileText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogTrigger 
-} from "@/components/ui/dialog";
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileSpreadsheet, Download, RefreshCw, Calendar, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 
 export function SupplierActions() {
-  const { toast } = useToast();
   const [reportType, setReportType] = useState("performance");
   const [fileFormat, setFileFormat] = useState("pdf");
-  const [dateRange, setDateRange] = useState<"7" | "30" | "90" | "custom">("30");
-  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
-  const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [isGenerating, setIsGenerating] = useState(false);
-
+  const [timeRange, setTimeRange] = useState<"7" | "30" | "90" | "custom">("30");
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  
   const handleSyncInventory = () => {
-    // Simulate syncing with inventory
-    toast({
-      title: "Synchronizing data",
-      description: "Updating supplier data from inventory...",
-    });
+    setIsSyncing(true);
     
-    // Simulate API call
+    // Simulate API call to sync inventory data
     setTimeout(() => {
+      setIsSyncing(false);
       toast({
-        title: "Sync completed",
-        description: "Supplier data has been synchronized with inventory.",
-      });
-    }, 1500);
-  };
-
-  const handleGenerateReport = () => {
-    setIsGenerating(true);
-
-    // Simulate report generation
-    setTimeout(() => {
-      setIsGenerating(false);
-      
-      toast({
-        title: "Report generated",
-        description: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report has been generated in ${fileFormat.toUpperCase()} format.`,
+        title: "Inventory Synchronized",
+        description: "Supplier data has been updated with the latest inventory changes.",
       });
     }, 2000);
   };
-
-  return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      <Button 
-        variant="outline" 
-        className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 hover:border-purple-300 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 dark:text-purple-400 dark:border-purple-800"
-        size="sm"
-        onClick={handleSyncInventory}
-      >
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Sync Inventory Data
-      </Button>
+  
+  const handleGenerateReport = () => {
+    setIsGeneratingReport(true);
+    
+    // Simulate report generation
+    setTimeout(() => {
+      setIsGeneratingReport(false);
       
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 hover:border-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 dark:border-blue-800"
-            size="sm"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Generate Report
-          </Button>
-        </DialogTrigger>
+      if (fileFormat === "pdf") {
+        toast({
+          title: "PDF Report Generated",
+          description: `Your ${reportType} report has been generated successfully.`,
+        });
+      } else {
+        toast({
+          title: "Excel Report Generated",
+          description: `Your ${reportType} report has been generated successfully.`,
+        });
+      }
+    }, 2000);
+  };
+  
+  const openReportDialog = () => {
+    setIsReportDialogOpen(true);
+  };
+  
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <Card className="flex-1">
+        <CardContent className="pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center">
+              <RefreshCw className="mr-2 h-5 w-5" />
+              <span className="font-medium">Sync Inventory Data</span>
+            </div>
+            <Button 
+              variant="default" 
+              size="sm"
+              disabled={isSyncing}
+              onClick={handleSyncInventory}
+              className="w-full sm:w-auto"
+            >
+              {isSyncing ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                  Syncing...
+                </>
+              ) : (
+                "Sync Now"
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="flex-1">
+        <CardContent className="pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center">
+              <FileText className="mr-2 h-5 w-5" />
+              <span className="font-medium">Generate Reports</span>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={openReportDialog}
+              className="w-full sm:w-auto"
+            >
+              <FileSpreadsheet className="mr-1.5 h-4 w-4" />
+              Generate Report
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Report Generation Dialog */}
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Generate Supplier Report</DialogTitle>
             <DialogDescription>
-              Create a detailed report of supplier performance and inventory data.
+              Configure report settings below to generate a detailed supplier report.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-2">
-              <Label htmlFor="report-type" className="col-span-1">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="reportType" className="text-right">
                 Report Type
               </Label>
               <Select
                 value={reportType}
                 onValueChange={setReportType}
-                id="report-type"
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select report type" />
+                  <SelectValue placeholder="Report Type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="performance">Performance Report</SelectItem>
-                  <SelectItem value="inventory">Inventory by Supplier</SelectItem>
-                  <SelectItem value="delivery">Delivery Analysis</SelectItem>
-                  <SelectItem value="quality">Quality Control</SelectItem>
+                  <SelectItem value="inventory">Inventory Report</SelectItem>
+                  <SelectItem value="delivery">Delivery Report</SelectItem>
+                  <SelectItem value="quality">Quality Report</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-2">
-              <Label htmlFor="file-format" className="col-span-1">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="fileFormat" className="text-right">
                 File Format
               </Label>
               <Select
                 value={fileFormat}
                 onValueChange={setFileFormat}
-                id="file-format"
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select file format" />
+                  <SelectValue placeholder="File Format" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pdf">PDF Document</SelectItem>
-                  <SelectItem value="excel">Excel Spreadsheet</SelectItem>
-                  <SelectItem value="csv">CSV File</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="excel">Excel</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <div className="grid grid-cols-4 items-center gap-2">
-              <Label htmlFor="date-range" className="col-span-1">
-                Date Range
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="timeRange" className="text-right">
+                Time Range
               </Label>
               <Select
-                value={dateRange}
-                onValueChange={(value: "7" | "30" | "90" | "custom") => setDateRange(value)}
-                id="date-range"
+                value={timeRange}
+                onValueChange={(value) => setTimeRange(value as "7" | "30" | "90" | "custom")}
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select date range" />
+                  <SelectValue placeholder="Time Range" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="7">Last 7 days</SelectItem>
-                  <SelectItem value="30">Last 30 days</SelectItem>
-                  <SelectItem value="90">Last 90 days</SelectItem>
-                  <SelectItem value="custom">Custom range</SelectItem>
+                  <SelectItem value="7">Last 7 Days</SelectItem>
+                  <SelectItem value="30">Last 30 Days</SelectItem>
+                  <SelectItem value="90">Last 90 Days</SelectItem>
+                  <SelectItem value="custom">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            {dateRange === "custom" && (
+            {timeRange === "custom" && (
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="col-span-1">Custom Range</Label>
-                <div className="col-span-3 flex items-center gap-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="from-date" className="text-xs">From</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="from-date"
-                          variant={"outline"}
-                          size="sm"
-                          className={cn(
-                            "w-[130px] justify-start text-left font-normal",
-                            !fromDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {fromDate ? format(fromDate, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={fromDate}
-                          onSelect={setFromDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                <Label htmlFor="dateRange" className="text-right">
+                  Date Range
+                </Label>
+                <div className="col-span-3 flex gap-2 items-center">
+                  <div className="flex flex-1 items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <Input
+                      type="date"
+                      id="startDate"
+                      className="flex-1"
+                    />
                   </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="to-date" className="text-xs">To</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="to-date"
-                          variant={"outline"}
-                          size="sm"
-                          className={cn(
-                            "w-[130px] justify-start text-left font-normal",
-                            !toDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {toDate ? format(toDate, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={toDate}
-                          onSelect={setToDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                  <span className="text-gray-500">to</span>
+                  <div className="flex flex-1 items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <Input
+                      type="date"
+                      id="endDate"
+                      className="flex-1"
+                    />
                   </div>
                 </div>
               </div>
@@ -223,16 +216,24 @@ export function SupplierActions() {
           </div>
           
           <DialogFooter>
-            <Button variant="outline">Cancel</Button>
-            <Button onClick={handleGenerateReport} disabled={isGenerating}>
-              {isGenerating ? (
+            <Button variant="outline" onClick={() => setIsReportDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsReportDialogOpen(false);
+                handleGenerateReport();
+              }}
+              disabled={isGeneratingReport}
+            >
+              {isGeneratingReport ? (
                 <>
-                  <span className="animate-spin mr-2">⏳</span>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                   Generating...
                 </>
               ) : (
                 <>
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-1.5 h-4 w-4" />
                   Generate Report
                 </>
               )}

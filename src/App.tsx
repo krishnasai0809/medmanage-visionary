@@ -11,6 +11,7 @@ import Suppliers from "./pages/Suppliers";
 import Expiry from "./pages/Expiry";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
@@ -30,6 +31,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/forecasting" element={<Forecasting />} />
             <Route path="/suppliers" element={<Suppliers />} />
