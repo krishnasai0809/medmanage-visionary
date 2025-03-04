@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { 
@@ -64,10 +63,9 @@ import {
 import { Calendar as CalendarIcon, Filter, Search, Bell, FileText, AlertTriangle, Check, X, Edit, Trash2, ChevronDown, ArrowUpDown, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 
-// Define types for the medicine items and alerts
 interface MedicineItem {
   id: string;
   name: string;
@@ -93,7 +91,6 @@ interface AlertSettings {
   createdAt: string;
 }
 
-// Mock data for medicines with expiry dates
 const mockMedicines: MedicineItem[] = [
   {
     id: "MED001",
@@ -124,13 +121,13 @@ const mockMedicines: MedicineItem[] = [
     name: "Ceftriaxone 1g",
     category: "Antibiotics",
     batchNumber: "B5678",
-    expiryDate: "2024-04-10", // Already expired
+    expiryDate: "2024-04-10",
     quantity: 50,
     supplier: "PharmaPlus Inc.",
     location: "Emergency Unit Cabinet",
     alertDays: 30,
     alertEnabled: false,
-    extendedDate: "2024-05-10", // Extended by one month
+    extendedDate: "2024-05-10",
     notes: "Quality check performed, safe to use for another month",
   },
   {
@@ -138,7 +135,7 @@ const mockMedicines: MedicineItem[] = [
     name: "Omeprazole 20mg",
     category: "Gastrointestinal",
     batchNumber: "B7890",
-    expiryDate: "2024-05-05", // Soon to expire
+    expiryDate: "2024-05-05",
     quantity: 120,
     supplier: "Healthcare Products Co.",
     location: "Pharmacy Storage A",
@@ -186,7 +183,7 @@ const mockMedicines: MedicineItem[] = [
     name: "Cephalexin 250mg",
     category: "Antibiotics",
     batchNumber: "B4680",
-    expiryDate: "2024-05-18", // Soon to expire
+    expiryDate: "2024-05-18",
     quantity: 150,
     supplier: "MediTech Pharmaceuticals",
     location: "Pharmacy Storage A",
@@ -219,7 +216,6 @@ const mockMedicines: MedicineItem[] = [
   }
 ];
 
-// Mock data for alert settings
 const mockAlerts: AlertSettings[] = [
   {
     id: "ALERT001",
@@ -262,7 +258,6 @@ export default function Expiry() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeTab, setActiveTab] = useState("all");
   
-  // States for dialogs
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
@@ -273,7 +268,6 @@ export default function Expiry() {
   const [alertDays, setAlertDays] = useState(30);
   const [notificationType, setNotificationType] = useState<"email" | "app" | "both">("both");
 
-  // Simulate data loading delay
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -281,21 +275,17 @@ export default function Expiry() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Get categories from medicines
   const categories = Array.from(new Set(medicines.map(med => med.category)));
 
-  // Get expiry status for a medicine
   const getExpiryStatus = (expiryDate: string, extendedDate?: string): "expired" | "expiring-soon" | "ok" => {
     const today = new Date();
     const dateToCheck = extendedDate || expiryDate;
     const expiry = new Date(dateToCheck);
     
-    // Check if already expired
     if (expiry < today) {
       return "expired";
     }
     
-    // Check if expiring soon (within 30 days)
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(today.getDate() + 30);
     
@@ -306,7 +296,6 @@ export default function Expiry() {
     return "ok";
   };
 
-  // Get badge for expiry status
   const getExpiryBadge = (medicine: MedicineItem) => {
     const status = getExpiryStatus(medicine.expiryDate, medicine.extendedDate);
     
@@ -334,13 +323,11 @@ export default function Expiry() {
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "MMM dd, yyyy");
   };
 
-  // Calculate days until expiry
   const getDaysUntilExpiry = (expiryDate: string, extendedDate?: string) => {
     const today = new Date();
     const dateToCheck = extendedDate || expiryDate;
@@ -352,7 +339,6 @@ export default function Expiry() {
     return differenceInDays;
   };
 
-  // Handle sorting
   const handleSort = (field: keyof MedicineItem) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -362,7 +348,6 @@ export default function Expiry() {
     }
   };
 
-  // Filter medicines based on search, category, status, and tab
   const filteredMedicines = medicines.filter(medicine => {
     const matchesSearch = 
       medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -385,14 +370,11 @@ export default function Expiry() {
     return matchesSearch && matchesCategory && matchesStatus && matchesTab;
   });
 
-  // Sort filtered medicines
   const sortedMedicines = [...filteredMedicines].sort((a, b) => {
     let aValue: any = a[sortField];
     let bValue: any = b[sortField];
     
-    // Special handling for dates
     if (sortField === "expiryDate") {
-      // Use extended date if available
       aValue = a.extendedDate || a.expiryDate;
       bValue = b.extendedDate || b.expiryDate;
       
@@ -407,7 +389,6 @@ export default function Expiry() {
     }
   });
 
-  // Get counts for expired and expiring soon medicines
   const expiredCount = medicines.filter(med => 
     getExpiryStatus(med.expiryDate, med.extendedDate) === "expired"
   ).length;
@@ -418,15 +399,12 @@ export default function Expiry() {
   
   const alertsEnabledCount = medicines.filter(med => med.alertEnabled).length;
 
-  // Handle alert setting
   const handleSetAlert = () => {
     if (!selectedMedicine) return;
     
-    // Check if alert already exists
     const existingAlertIndex = alerts.findIndex(a => a.medicineId === selectedMedicine.id);
     
     if (existingAlertIndex >= 0) {
-      // Update existing alert
       const updatedAlerts = [...alerts];
       updatedAlerts[existingAlertIndex] = {
         ...updatedAlerts[existingAlertIndex],
@@ -436,7 +414,6 @@ export default function Expiry() {
       };
       setAlerts(updatedAlerts);
     } else {
-      // Create new alert
       const newAlert: AlertSettings = {
         id: `ALERT${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`,
         medicineId: selectedMedicine.id,
@@ -449,7 +426,6 @@ export default function Expiry() {
       setAlerts([...alerts, newAlert]);
     }
     
-    // Update medicine alert settings
     const updatedMedicines = medicines.map(med => {
       if (med.id === selectedMedicine.id) {
         return {
@@ -470,7 +446,6 @@ export default function Expiry() {
     });
   };
 
-  // Handle update expiry date
   const handleUpdateExpiryDate = () => {
     if (!selectedMedicine || !newExpiryDate) return;
     
@@ -494,7 +469,6 @@ export default function Expiry() {
     });
   };
 
-  // Handle extend shelf life
   const handleExtendShelfLife = () => {
     if (!selectedMedicine || !extendedExpiryDate) return;
     
@@ -520,7 +494,6 @@ export default function Expiry() {
     });
   };
 
-  // Handle toggle alert
   const handleToggleAlert = (medicine: MedicineItem) => {
     const updatedMedicines = medicines.map(med => {
       if (med.id === medicine.id) {
@@ -534,7 +507,6 @@ export default function Expiry() {
     
     setMedicines(updatedMedicines);
     
-    // Also update the alert in alerts list
     const alertIndex = alerts.findIndex(a => a.medicineId === medicine.id);
     if (alertIndex >= 0) {
       const updatedAlerts = [...alerts];
@@ -551,7 +523,6 @@ export default function Expiry() {
     });
   };
 
-  // Handle remove extended date
   const handleRemoveExtendedDate = (medicine: MedicineItem) => {
     const updatedMedicines = medicines.map(med => {
       if (med.id === medicine.id) {
@@ -582,7 +553,6 @@ export default function Expiry() {
           </div>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-6">
@@ -657,7 +627,6 @@ export default function Expiry() {
           </Card>
         </div>
 
-        {/* Main Content */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold">Expiry Management</CardTitle>
@@ -755,9 +724,6 @@ export default function Expiry() {
                         </button>
                       </th>
                       <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Days Remaining
-                      </th>
-                      <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Status
                       </th>
                       <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -812,34 +778,18 @@ export default function Expiry() {
                                 Note: {medicine.notes}
                               </div>
                             )}
-                          </td>
-                          <td className="py-3 px-4 text-center">
+                            
                             <div className={cn(
-                              "font-medium",
+                              "mt-1 text-xs",
                               daysRemaining < 0 ? "text-red-600 dark:text-red-400" :
                               daysRemaining <= 30 ? "text-amber-600 dark:text-amber-400" :
                               "text-green-600 dark:text-green-400"
                             )}>
                               {daysRemaining < 0 
                                 ? `${Math.abs(daysRemaining)} days overdue` 
-                                : `${daysRemaining} days`
+                                : `${daysRemaining} days remaining`
                               }
                             </div>
-                            {medicine.extendedDate && (
-                              <div className="w-full mt-1">
-                                <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                  <div 
-                                    className={cn(
-                                      "h-full",
-                                      daysRemaining < 0 ? "bg-red-500" :
-                                      daysRemaining <= 30 ? "bg-amber-500" :
-                                      "bg-green-500"
-                                    )}
-                                    style={{ width: `${Math.min(100, Math.max(daysRemaining / 90 * 100, 0))}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            )}
                           </td>
                           <td className="py-3 px-4 text-center">
                             {getExpiryBadge(medicine)}
@@ -905,7 +855,6 @@ export default function Expiry() {
                                   className="text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300"
                                   onClick={() => {
                                     setSelectedMedicine(medicine);
-                                    // Default to extending by 30 days from original expiry
                                     const extendDate = new Date(medicine.expiryDate);
                                     extendDate.setDate(extendDate.getDate() + 30);
                                     setExtendedExpiryDate(extendDate);
@@ -939,7 +888,6 @@ export default function Expiry() {
           </CardContent>
         </Card>
 
-        {/* Set Alert Dialog */}
         <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -1009,7 +957,6 @@ export default function Expiry() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Expiry Date Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -1078,7 +1025,6 @@ export default function Expiry() {
           </DialogContent>
         </Dialog>
 
-        {/* Extend Shelf Life Dialog */}
         <Dialog open={isExtendDialogOpen} onOpenChange={setIsExtendDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -1166,7 +1112,6 @@ export default function Expiry() {
   );
 }
 
-// Missing component for the CalendarPlus icon (since it's not in lucide-react by default)
 function CalendarPlus({ className, size = 24, ...props }: React.SVGProps<SVGSVGElement> & { size?: number }) {
   return (
     <svg
