@@ -8,7 +8,7 @@ import { ExpiryTrackingList } from "@/components/dashboard/ExpiryTrackingList";
 import { ForecastingPanel } from "@/components/dashboard/ForecastingPanel";
 import { DeliveryStatusCard } from "@/components/dashboard/DeliveryStatusCard";
 import { TopInDemandList } from "@/components/dashboard/TopInDemandList";
-import { Package, TrendingUp } from "lucide-react";
+import { Package } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -62,14 +62,7 @@ export default function Index() {
               icon={Package}
               className="hover-scale"
             />
-            <StatsCard
-              title="Forecasted Demand"
-              value="16,245"
-              description="next 30 days"
-              percentageChange={12.8}
-              icon={TrendingUp}
-              className="hover-scale"
-            />
+            <TopInDemandList />
             <DeliveryStatusCard />
           </div>
         )}
@@ -106,7 +99,7 @@ export default function Index() {
                 <ExpiryTrackingList threshold={expiryThreshold} />
               </div>
               <div className="h-1/2">
-                <TopInDemandList />
+                {/* Removed the duplicate TopInDemandList that was here previously */}
               </div>
             </div>
           </div>

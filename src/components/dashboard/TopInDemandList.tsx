@@ -52,7 +52,7 @@ export function TopInDemandList() {
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full hover-scale">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -80,11 +80,11 @@ export function TopInDemandList() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center items-center h-[250px]">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex justify-center items-center h-[150px]">
+            <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="max-h-[250px] overflow-y-auto pr-2">
+          <div className="max-h-[150px] overflow-y-auto pr-2">
             <Table>
               <TableHeader>
                 <TableRow>
